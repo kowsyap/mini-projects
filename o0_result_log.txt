@@ -1,0 +1,68 @@
+Matrix size: 4 x 4
+Starting timer value: 0
+Classic Multiplication Timer: 311
+Classic Multiplication Results:
+-19     -16     -12     24
+-5      -9      -13     -5
+24      -1      -37     -1
+-12     2       27      16
+NEON Multiplier Timer: 247
+NEON Multiplier output
+-19     -16     -12     24
+-5      -9      -13     -5
+24      -1      -37     -1
+-12     2       27      16
+Error percent: 0
+
+
+Matrix size: 8 x 8
+Starting timer value: 0
+Classic Multiplication Timer: 1821
+Classic Multiplication Results:
+-26     10      18      -45     7       -28     -24     -21
+14      -52     -11     54      -51     16      9       20
+-47     -13     37      10      24      5       -18     5
+44      -23     -13     36      -1      14      8       33
+-48     14      -5      6       -50     30      -17     -73
+44      -2      2       -8      2       -12     12      11
+-18     1       8       -11     15      16      6       -29
+-66     5       29      -40     7       -11     -40     -54
+NEON Multiplier Timer: 1085
+NEON Multiplier output
+-26     10      18      -45     7       -28     -24     -21
+14      -52     -11     54      -51     16      9       20
+-47     -13     37      10      24      5       -18     5
+44      -23     -13     36      -1      14      8       33
+-48     14      -5      6       -50     30      -17     -73
+44      -2      2       -8      2       -12     12      11
+-18     1       8       -11     15      16      6       -29
+-66     5       29      -40     7       -11     -40     -54
+Error percent: 0
+
+
+Matrix size: 16 x 16
+Starting timer value: 0
+Classic Multiplication Timer: 13995
+NEON Multiplier Timer: 7505
+Error percent: 0
+
+
+Matrix size: 32 x 32
+Starting timer value: 0
+Classic Multiplication Timer: 107829
+NEON Multiplier Timer: 58281
+Error percent: 0
+
+
+Matrix size: 48 x 48
+Starting timer value: 0
+Classic Multiplication Timer: 471789
+NEON Multiplier Timer: 206159
+Error percent: 0
+
+
+Matrix size: 64 x 64
+Starting timer value: 0
+Classic Multiplication Timer: 854287
+NEON Multiplier Timer: 460559
+Error percent: 0
