@@ -24,7 +24,7 @@
  */
 #define TIMER_COUNTER_0	 0
 #define MAXRAND 8 // maximum size of a random number in a floating point matrix element
-#define N 32 // size of matrix will be N x N, where N in {4, 8, 16, 32, 48, 64}
+#define N 64 // size of matrix will be N x N, where N in {4, 8, 16, 32, 48, 64}
 #define BS 16
 
 /**************************** Type Definitions *******************************/
@@ -39,7 +39,6 @@
 void classicMatMult(float [], float [], float []);
 float checkCorrect(float [], float []);
 void neonMatMult(float [], float [], float []);
-void neonMatMultBS(float [], float [], float []);
 
 /************************** Variable Definitions *****************************/
 
@@ -50,7 +49,7 @@ int main(void)
 {
 
 /* Generate pseudorandom arrays */
-
+    
 	xil_printf("Matrix size: %d x %d\n\r",N,N);
 	for (int i = 0; i < N*N; i++){
 		A[i] = (float)((rand()%MAXRAND)-(rand()%MAXRAND));
@@ -136,40 +135,9 @@ int main(void)
      	}
     }
 
-  //-------------------
-
-    XTmrCtr_Reset(&TimerCounter, TIMER_COUNTER_0);
-	/* Time critical region for Neon matrix multiplication */
-
-    XTmrCtr_Start(&TimerCounter, TIMER_COUNTER_0);
-
-	neonMatMultBS(A, B, E);
-	
-    XTmrCtr_Stop(&TimerCounter, TIMER_COUNTER_0);
-	/* End time critical region for Neon matrix multiplication */
-
-    u32 Value3 = XTmrCtr_GetValue(&TimerCounter, TIMER_COUNTER_0);
-	xil_printf("NEON Multiplier BS Timer: %d \n\r",Value3);
-
-    if (N<=8){
-    	xil_printf("NEON Multiplier BS output\n\r");
-
-    	//output
-    	for (int i = 0; i < N; i++){
-    		for (int j = 0; j < N; j++)
-    			xil_printf("%d \t",(int)E[i*N+j]);
-    		xil_printf("\n\r");
-     	}
-    }
-
-
-  //-------------------
-
-
 /* Verify correct output */
 
-    xil_printf("Error percent: %d \n\r",(int)checkCorrect(C, D));
-    xil_printf("Error percent BS: %d \n\r",(int)checkCorrect(C, E));
+    xil_printf("Error percent: %d \n\r\n\n",(int)checkCorrect(C, D));
     return XST_SUCCESS;
 
 }
@@ -184,47 +152,12 @@ void classicMatMult(float A[], float B[], float C[]){
 
 void neonMatMult(float A[], float B[], float D[])
 {
-    for (int i = 0; i < N*N; i++) D[i] = 0.0f;
-
-    // Compute D = A * B, row-major NxN
-    // Vectorize across columns of B/D (j..j+3). N is always multiple of 4 for MP3.
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j += 4) {
-
-            float32x4_t acc = vdupq_n_f32(0.0f);
-
-            for (int k = 0; k < N; k++) {
-                // A[i,k] replicated
-                float32x4_t a = vdupq_n_f32(A[i*N + k]);
-
-                // Load B[k, j..j+3] contiguous
-                float32x4_t b = vld1q_f32(&B[k*N + j]);
-
-                // acc += a*b
-                acc = vmlaq_f32(acc, a, b);
-            }
-
-            // Store D[i, j..j+3]
-            vst1q_f32(&D[i*N + j], acc);
-        }
-    }
-}
-
-void neonMatMultBS(float A[], float B[], float D[])
-{
-    for (int i = 0; i < N*N; i++) D[i] = 0.0f;
-
-    // We tile over ii and jj, but keep kk accumulation in-register
     for (int ii = 0; ii < N; ii += BS) {
         for (int jj = 0; jj < N; jj += BS) {
-
             for (int i = ii; i < ii + BS && i < N; i++) {
 
                 for (int j = jj; j < jj + BS && j < N; j += 4) {
-
-                    // Keep acc in registers across ALL kk tiles
                     float32x4_t acc = vdupq_n_f32(0.0f);
-
                     for (int kk = 0; kk < N; kk += BS) {
                         for (int k = kk; k < kk + BS && k < N; k++) {
                             float32x4_t a = vdupq_n_f32(A[i*N + k]);
@@ -233,7 +166,6 @@ void neonMatMultBS(float A[], float B[], float D[])
                         }
                     }
 
-                    // Store ONCE
                     vst1q_f32(&D[i*N + j], acc);
                 }
             }
