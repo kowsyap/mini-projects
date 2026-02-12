@@ -214,29 +214,33 @@ void neonMatMultBS(float A[], float B[], float D[])
 {
     for (int i = 0; i < N*N; i++) D[i] = 0.0f;
 
+    // We tile over ii and jj, but keep kk accumulation in-register
     for (int ii = 0; ii < N; ii += BS) {
         for (int jj = 0; jj < N; jj += BS) {
-            for (int kk = 0; kk < N; kk += BS) {
 
-                for (int i = ii; i < ii + BS && i < N; i++) {
+            for (int i = ii; i < ii + BS && i < N; i++) {
 
-                    for (int j = jj; j < jj + BS && j < N; j += 4) {
+                for (int j = jj; j < jj + BS && j < N; j += 4) {
 
-                        float32x4_t acc = vld1q_f32(&D[i*N + j]);
+                    // Keep acc in registers across ALL kk tiles
+                    float32x4_t acc = vdupq_n_f32(0.0f);
 
+                    for (int kk = 0; kk < N; kk += BS) {
                         for (int k = kk; k < kk + BS && k < N; k++) {
-                            float32x4_t a = vdupq_n_f32(A[i*N + k]);    
-                            float32x4_t b = vld1q_f32(&B[k*N + j]);      
-                            acc = vmlaq_f32(acc, a, b);                 
+                            float32x4_t a = vdupq_n_f32(A[i*N + k]);
+                            float32x4_t b = vld1q_f32(&B[k*N + j]);
+                            acc = vmlaq_f32(acc, a, b);
                         }
-
-                        vst1q_f32(&D[i*N + j], acc);
                     }
+
+                    // Store ONCE
+                    vst1q_f32(&D[i*N + j], acc);
                 }
             }
         }
     }
 }
+
 
 
 float checkCorrect(float A[], float B[]){
@@ -251,3 +255,4 @@ float checkCorrect(float A[], float B[]){
 		
 	return cumerror*100/errorcntr;
 }
+
