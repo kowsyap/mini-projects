@@ -13,14 +13,15 @@
 #include "xil_printf.h"
 #include "xscugic.h"
 
-#define DMA_DEV_ID XPAR_AXIDMA_0_DEVICE_ID
-#define INTC_DEVICE_ID XPAR_SCUGIC_SINGLE_DEVICE_ID
-#define RX_INTR_ID XPAR_FABRIC_AXIDMA_0_S2MM_INTROUT_VEC_ID
-#define TX_INTR_ID XPAR_FABRIC_AXIDMA_0_MM2S_INTROUT_VEC_ID
+#define DMA_DEV_ID 0
+#define INTC_DEVICE_ID 0
+#define TX_INTR_ID XPAR_FABRIC_AXI_DMA_0_INTR
+#define RX_INTR_ID XPAR_FABRIC_AXI_DMA_0_INTR_1
 
-#ifdef XPAR_PS7_DDR_0_S_AXI_BASEADDR
-#define DDR_BASE_ADDR XPAR_PS7_DDR_0_S_AXI_BASEADDR
-#elif defined (XPAR_PSU_DDR_0_S_AXI_BASEADDR)
+
+#ifdef XPAR_PS7_DDR_0_BASEADDRESS
+#define DDR_BASE_ADDR XPAR_PS7_DDR_0_BASEADDRESS
+#elif defined (XPAR_PSU_DDR_0_BASEADDR)
 #define DDR_BASE_ADDR XPAR_PSU_DDR_0_S_AXI_BASEADDR
 #endif
 
@@ -34,6 +35,7 @@
 #define TX_BUFFER_BASE (MEM_BASE_ADDR + 0x00100000)
 #define RX_BUFFER_BASE (MEM_BASE_ADDR + 0x00300000)
 #define RESET_TIMEOUT_COUNTER 10000U
+#define NUMBER_OF_EVENTS 1
 
 static XAxiDma AxiDma;
 static XScuGic Intc;
@@ -91,19 +93,59 @@ int runVectorSum(XAxiDma *AxiDmaPtr, const u32 *data, u32 length, u64 *sum_out)
     Status = XAxiDma_SimpleTransfer(AxiDmaPtr, (UINTPTR)RxBufferPtr,
                                     VECADD_OUTPUT_BYTES, XAXIDMA_DEVICE_TO_DMA);
     if (Status != XST_SUCCESS) {
+        xil_printf("1 TxDone=%u RxDone=%u Error=%u\r\n", TxDone, RxDone, Error);
         return Status;
     }
 
     Status = XAxiDma_SimpleTransfer(AxiDmaPtr, (UINTPTR)TxBufferPtr,
                                     length * sizeof(u32), XAXIDMA_DMA_TO_DEVICE);
     if (Status != XST_SUCCESS) {
+        xil_printf("2 TxDone=%u RxDone=%u Error=%u\r\n", TxDone, RxDone, Error);
         return Status;
     }
 
-    Status = WaitForCompletion();
-    if (Status != XST_SUCCESS) {
-        return Status;
+    int timeout = VECADD_WAIT_LIMIT;
+    while (XAxiDma_Busy(AxiDmaPtr, XAXIDMA_DMA_TO_DEVICE)) {
+        if (--timeout == 0) {
+            xil_printf("Timeout on TX channel\n");
+            return XST_FAILURE;
+        }
     }
+
+    timeout = VECADD_WAIT_LIMIT;
+    while (XAxiDma_Busy(AxiDmaPtr, XAXIDMA_DEVICE_TO_DMA)) {
+        if (--timeout == 0) {
+            xil_printf("Timeout on RX channel\n");
+            return XST_FAILURE;
+        }
+    }
+
+        // my interrupts are not working, it didnt work with timer ip too, i dont know why but I enabled interrupts in ps and connected both of them from dma to irq_f2p via concat
+
+        // Status = Xil_WaitForEventSet(VECADD_WAIT_LIMIT, NUMBER_OF_EVENTS, &Error);
+		// if (Status == XST_SUCCESS) {
+		// 	if (!TxDone) {
+		// 		xil_printf("Transmit error %d\r\n", Status);
+		// 		return XST_FAILURE;
+		// 	} else if (Status == XST_SUCCESS && !RxDone) {
+		// 		xil_printf("Receive error %d\r\n", Status);
+		// 		return XST_FAILURE;
+		// 	}
+		// }
+
+		// Status = Xil_WaitForEventSet(VECADD_WAIT_LIMIT, NUMBER_OF_EVENTS, &TxDone);
+		// if (Status != XST_SUCCESS) {
+		// 	xil_printf("Transmit failed %d\r\n", Status);
+		// 	return XST_FAILURE;
+
+		// }
+
+		// Status = Xil_WaitForEventSet(VECADD_WAIT_LIMIT, NUMBER_OF_EVENTS, &RxDone);
+		// if (Status != XST_SUCCESS) {
+		// 	xil_printf("Receive failed %d\r\n", Status);
+		// 	return XST_FAILURE;
+		// }
+
 
     Xil_DCacheInvalidateRange((UINTPTR)RxBufferPtr, VECADD_OUTPUT_BYTES);
     *sum_out = (((u64)RxBufferPtr[1]) << 32) | ((u64)RxBufferPtr[0]);
@@ -203,14 +245,14 @@ static int RunTestCase(XAxiDma *AxiDmaPtr, u32 test_index, const VecAddTestCase 
     u64 hw_sum;
     u64 sw_sum;
 
-    xil_printf("Starting test %lu\r\n", (unsigned long)test_index);
+    xil_printf("Starting test %u\r\n", (unsigned long)test_index);
     xil_printf("Input array:\r\n");
     printInputArray(test_case->data, test_case->length);
 
     sw_sum = calcReferenceSum(test_case->data, test_case->length);
     Status = runVectorSum(AxiDmaPtr, test_case->data, test_case->length, &hw_sum);
     if (Status != XST_SUCCESS) {
-        xil_printf("Transfer failed for test %lu\r\n", (unsigned long)test_index);
+        xil_printf("Transfer failed for test %u\r\n", (unsigned long)test_index);
         return Status;
     }
 
@@ -228,7 +270,7 @@ static int RunTestCase(XAxiDma *AxiDmaPtr, u32 test_index, const VecAddTestCase 
     }
 
     xil_printf("Test Passed!\r\n");
-    xil_printf("Finished test %lu\r\n", (unsigned long)test_index);
+    xil_printf("Finished test %u\r\n", (unsigned long)test_index);
 
     return XST_SUCCESS;
 }
@@ -237,8 +279,9 @@ static int RunTestCase(XAxiDma *AxiDmaPtr, u32 test_index, const VecAddTestCase 
 static void printInputArray(const u32 *data, u32 length)
 {
     u32 i;
+    xil_printf("length: %u\n", length);
     for (i = 0; i < length; ++i) {
-        xil_printf("%lu, ", (unsigned long)data[i]);
+        xil_printf("%u, ",data[i]);
     }
     xil_printf("\r\n");
 }
