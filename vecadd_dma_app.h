@@ -11,7 +11,6 @@
 #define VECADD_TEST_CASE_COUNT 4U
 
 typedef struct {
-  const char *name;
   const u32 *data;
   u32 length;
 } VecAddTestCase;
