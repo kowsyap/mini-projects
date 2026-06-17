@@ -1,0 +1,65 @@
+# r1s1
+
+
+
+# r1s2
+
+
+
+# r1s3
+
+
+
+# r1s5
+
+
+
+# r2s1
+
+Note: CASE 1 cycles=20299 time=202980ns pass=true
+Note: CASE 2 cycles=20322 time=203210ns pass=true
+Note: CASE 3 cycles=20298 time=202970ns pass=true
+Note: CASE 4 cycles=20298 time=202970ns pass=true
+Note: CASE 5 cycles=20322 time=203210ns pass=true
+Note: CASE 6 cycles=20298 time=202970ns pass=true
+Note: CASE 7 cycles=20298 time=202970ns pass=true
+Note: CASE 8 cycles=20322 time=203210ns pass=true
+Note: CASE 9 cycles=20346 time=203450ns pass=true
+Note: CASE 10 cycles=20322 time=203210ns pass=true
+Note: CASE 11 cycles=20298 time=202970ns pass=true
+Note: BATCH DONE cases=11 wrong_cases=0 total_cycles=223423 total_time=2234120ns
+Note: Simulation complete
+
+# r2s2
+
+Note: CASE 1 cycles=17019 time=170180ns pass=true
+Note: CASE 2 cycles=17042 time=170410ns pass=true
+Note: CASE 3 cycles=17018 time=170170ns pass=true
+Note: CASE 4 cycles=17042 time=170410ns pass=true
+Note: CASE 5 cycles=17042 time=170410ns pass=true
+Note: CASE 6 cycles=17018 time=170170ns pass=true
+Note: CASE 7 cycles=17042 time=170410ns pass=true
+Note: CASE 8 cycles=17042 time=170410ns pass=true
+Note: CASE 9 cycles=17042 time=170410ns pass=true
+Note: CASE 10 cycles=17018 time=170170ns pass=true
+Note: BATCH DONE cases=10 wrong_cases=0 total_cycles=170325 total_time=1703150ns
+Note: Simulation complete
+
+# r2s3
+
+Note: CASE 1 cycles=35845 time=358440ns pass=true
+Note: CASE 2 cycles=35820 time=358190ns pass=true
+Note: CASE 3 cycles=35820 time=358190ns pass=true
+Note: CASE 4 cycles=35820 time=358190ns pass=true
+Note: CASE 5 cycles=35844 time=358430ns pass=true
+Note: CASE 6 cycles=35820 time=358190ns pass=true
+Note: CASE 7 cycles=35844 time=358430ns pass=true
+Note: CASE 8 cycles=35844 time=358430ns pass=true
+Note: CASE 9 cycles=35820 time=358190ns pass=true
+Note: CASE 10 cycles=35868 time=358670ns pass=true
+Note: BATCH DONE cases=10 wrong_cases=0 total_cycles=358345 total_time=3583350ns
+Note: Simulation complete
+
+# r2s5
+
+
